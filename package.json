@@ -1,0 +1,11 @@
+{
+  "name": "mesh-ai",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "echo Run backend from apps/api (see README)",
+    "build": "pnpm --filter web build"
+  }
+}

@@ -1,0 +1,18 @@
+- id: r1
+  name: core-router-1
+  host: 10.0.0.1
+  port: 22
+  username: admin
+  auth_method: key
+  tags: [core, router]
+  subnet: 10.0.0.0/24
+  site: nyc
+- id: s1
+  name: edge-switch-1
+  host: 10.0.1.10
+  port: 22
+  username: admin
+  auth_method: password
+  tags: [edge, switch]
+  subnet: 10.0.1.0/24
+  site: lax
