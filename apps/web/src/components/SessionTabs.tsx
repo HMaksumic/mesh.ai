@@ -1,4 +1,7 @@
 import type { SessionState } from '../types'
+import Badge from './ui/Badge'
+import Button from './ui/Button'
+import { Tabs } from './ui/Tabs'
 
 type Props = {
   sessions: SessionState[]
@@ -25,30 +28,44 @@ export default function SessionTabs({
     }
   }
 
+  const statusTone: Record<SessionState['status'], 'neutral' | 'success' | 'warning' | 'error'> = {
+    connected: 'success',
+    disconnected: 'neutral',
+    error: 'error'
+  }
+
   return (
-    <div className="tabs">
+    <Tabs>
       {sessions.map((s) => (
         <div
           key={s.sessionId}
-          className={`tab ${activeTabId === s.sessionId ? 'active' : ''}`}
+          className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm ${
+            activeTabId === s.sessionId
+              ? 'border-neutral-300 bg-neutral-50'
+              : 'border-neutral-200 bg-white'
+          }`}
         >
-          <button className="tab-title" onClick={() => onActivate(s.sessionId)}>
+          <button
+            className="font-medium text-neutral-900"
+            onClick={() => onActivate(s.sessionId)}
+          >
             {s.device.name}
           </button>
-          <span className={`status ${s.status}`}>{s.status}</span>
-          <label className="select">
+          <Badge tone={statusTone[s.status]}>{s.status}</Badge>
+          <label className="flex items-center gap-2 text-xs text-neutral-500">
             <input
               type="checkbox"
               checked={selectedSessionIds.includes(s.sessionId)}
               onChange={() => toggleSelect(s.sessionId)}
+              className="h-4 w-4 accent-neutral-900"
             />
             Broadcast
           </label>
-          <button className="close" onClick={() => onClose(s.sessionId)}>
+          <Button variant="ghost" onClick={() => onClose(s.sessionId)} aria-label="Close tab">
             ×
-          </button>
+          </Button>
         </div>
       ))}
-    </div>
+    </Tabs>
   )
 }

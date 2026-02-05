@@ -4,9 +4,12 @@ import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
 import type { WsServerMessage, WsClientMessage } from '@mesh/shared'
 import { useSessionSocket } from '../hooks/useSession'
+import Badge from './ui/Badge'
+import Card from './ui/Card'
 
 const termOpts = {
-  fontFamily: 'Fira Code, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+  fontFamily:
+    'Fira Code, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
   fontSize: 13,
   cursorBlink: true,
   theme: {
@@ -15,18 +18,29 @@ const termOpts = {
   }
 }
 
+type Status = 'connected' | 'disconnected' | 'error'
+
 type Props = {
   sessionId: string
+  title: string
+  status: Status
   wsUrl: string
-  onStatus: (state: 'connected' | 'disconnected' | 'error', message?: string) => void
+  onStatus: (state: Status, message?: string) => void
   onRegister: (sessionId: string, send: (msg: WsClientMessage) => void) => void
   onUnregister: (sessionId: string) => void
 }
 
-export default function TerminalPane({ sessionId, wsUrl, onStatus, onRegister, onUnregister }: Props) {
+export default function TerminalPane({
+  sessionId,
+  title,
+  status,
+  wsUrl,
+  onStatus,
+  onRegister,
+  onUnregister
+}: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
-  const fitRef = useRef<FitAddon | null>(null)
 
   const onMessage = (msg: WsServerMessage) => {
     if (msg.type === 'output') terminalRef.current?.write(msg.data)
@@ -40,7 +54,6 @@ export default function TerminalPane({ sessionId, wsUrl, onStatus, onRegister, o
     const fit = new FitAddon()
     term.loadAddon(fit)
     terminalRef.current = term
-    fitRef.current = fit
 
     if (containerRef.current) {
       term.open(containerRef.current)
@@ -71,5 +84,17 @@ export default function TerminalPane({ sessionId, wsUrl, onStatus, onRegister, o
     }
   }, [connect, send, close, sessionId, onRegister, onUnregister])
 
-  return <div className="terminal" ref={containerRef} />
+  const tone = status === 'connected' ? 'success' : status === 'error' ? 'error' : 'neutral'
+
+  return (
+    <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex items-center justify-between border-b border-neutral-200 bg-neutral-50 px-3 py-2">
+        <div className="text-sm font-medium text-neutral-900">{title}</div>
+        <Badge tone={tone}>{status}</Badge>
+      </div>
+      <div className="flex-1 min-h-0 bg-neutral-900">
+        <div className="h-full w-full" ref={containerRef} />
+      </div>
+    </Card>
+  )
 }

@@ -7,6 +7,8 @@ import SplitView from './components/SplitView'
 import CommandPanel from './components/CommandPanel'
 import type { SessionState } from './types'
 import type { WsClientMessage } from '@mesh/shared'
+import Badge from './components/ui/Badge'
+import Button from './components/ui/Button'
 
 const defaultFilters = { tag: '', site: '', subnet: '', q: '' }
 
@@ -92,23 +94,23 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className="flex h-screen flex-col bg-neutral-50 font-sans text-neutral-900 md:flex-row">
       <DeviceSidebar
         devices={devices}
         filters={filters}
         onFilters={setFilters}
         onConnect={openSession}
       />
-      <main className="main">
-        <header className="topbar">
-          <div className="topbar-left">
-            <h1>Mesh SSH Gateway</h1>
-            <span className="pill">V1</span>
+      <main className="flex min-w-0 flex-1 flex-col">
+        <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-semibold">Mesh SSH Gateway</h1>
+            <Badge>V1</Badge>
           </div>
-          <div className="topbar-actions">
-            <button onClick={() => setSplitMode((v) => !v)}>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" onClick={() => setSplitMode((v) => !v)}>
               {splitMode ? 'Single View' : 'Split View'}
-            </button>
+            </Button>
           </div>
         </header>
 
