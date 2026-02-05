@@ -55,6 +55,7 @@ export default function TerminalPane({
     term.loadAddon(fit)
     terminalRef.current = term
     let disposed = false
+    let connected = false
 
     let fitTimeout: number | null = null
     if (containerRef.current) {
@@ -67,18 +68,25 @@ export default function TerminalPane({
         } catch (e) {
           console.warn('Failed to fit terminal:', e)
         }
-      }, 0)
+      }, 50)
     }
 
     term.onData((data) => {
-      send({ type: 'input', data })
+      if (connected) {
+        send({ type: 'input', data })
+      }
     })
 
-    connect()
-    
-    // Wait for connection before sending resize
-    const resizeTimeout = setTimeout(() => {
-      send({ type: 'resize', cols: term.cols, rows: term.rows })
+    const connectTimeout = setTimeout(() => {
+      if (disposed) return
+      connect()
+      connected = true
+      
+      // Wait for connection before sending resize
+      setTimeout(() => {
+        if (disposed || !term.element) return
+        send({ type: 'resize', cols: term.cols, rows: term.rows })
+      }, 200)
     }, 100)
 
     onRegister(sessionId, send)
@@ -98,19 +106,25 @@ export default function TerminalPane({
     return () => {
       disposed = true
       if (fitTimeout !== null) window.clearTimeout(fitTimeout)
-      clearTimeout(resizeTimeout)
+      clearTimeout(connectTimeout)
       window.removeEventListener('resize', handleResize)
       onUnregister(sessionId)
+      
       close()
-      term.dispose()
-      terminalRef.current = null
+      
+      setTimeout(() => {
+        if (terminalRef.current === term) {
+          term.dispose()
+          terminalRef.current = null
+        }
+      }, 10)
     }
   }, [sessionId])
 
   const tone = status === 'connected' ? 'success' : status === 'error' ? 'error' : 'neutral'
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <Card className="flex min-h-0 flex-1 flex-col overflow-hidden max-h-[600px]">
       <div className="flex items-center justify-between border-b border-neutral-200 bg-neutral-50 px-3 py-2">
         <div className="text-sm font-medium text-neutral-900">{title}</div>
         <Badge tone={tone}>{status}</Badge>

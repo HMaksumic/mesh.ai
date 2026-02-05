@@ -15,18 +15,34 @@ export function openSessionSocket(
   onMessage: SessionMessageHandler,
   onStatus: (state: SessionState['status'], message?: string) => void
 ): WebSocket {
+  console.log('[WS] Connecting to:', wsUrl)
   const ws = new WebSocket(wsUrl)
-  ws.onopen = () => onStatus('connected')
-  ws.onclose = () => onStatus('disconnected')
-  ws.onerror = () => onStatus('error', 'WebSocket error')
+  
+  ws.onopen = () => {
+    console.log('[WS] Connected')
+    onStatus('connected')
+  }
+  
+  ws.onclose = (event) => {
+    console.log('[WS] Closed:', event.code, event.reason)
+    onStatus('disconnected')
+  }
+  
+  ws.onerror = (error) => {
+    console.error('[WS] Error:', error)
+    onStatus('error', 'WebSocket error')
+  }
+  
   ws.onmessage = (event) => {
     try {
       const msg = JSON.parse(event.data) as WsServerMessage
       onMessage(msg)
     } catch (err) {
+      console.error('[WS] Invalid message:', err)
       onStatus('error', 'Invalid message')
     }
   }
+  
   return ws
 }
 

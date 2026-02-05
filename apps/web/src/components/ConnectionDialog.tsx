@@ -10,9 +10,8 @@ interface ConnectionDialogProps {
 }
 
 export default function ConnectionDialog({ onConnect, onCancel }: ConnectionDialogProps) {
-  const [host, setHost] = useState('')
+  const [hostInput, setHostInput] = useState('')
   const [port, setPort] = useState('22')
-  const [username, setUsername] = useState('')
   const [authMethod, setAuthMethod] = useState<'interactive' | 'password' | 'key'>('interactive')
   const [password, setPassword] = useState('')
   const [privateKey, setPrivateKey] = useState('')
@@ -20,6 +19,11 @@ export default function ConnectionDialog({ onConnect, onCancel }: ConnectionDial
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     
+    // Parse username@host format
+    const atIndex = hostInput.indexOf('@')
+    const username = atIndex > 0 ? hostInput.substring(0, atIndex) : ''
+    const host = atIndex > 0 ? hostInput.substring(atIndex + 1) : hostInput
+
     const connection: ConnectionDetails = {
       host,
       port: parseInt(port),
@@ -31,7 +35,7 @@ export default function ConnectionDialog({ onConnect, onCancel }: ConnectionDial
     onConnect(connection)
   }
 
-  const isValid = host && port && username
+  const isValid = hostInput && port && hostInput.includes('@')
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -41,15 +45,18 @@ export default function ConnectionDialog({ onConnect, onCancel }: ConnectionDial
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-neutral-700">
-              Host
+              SSH Connection
             </label>
             <Input
               type="text"
-              value={host}
-              onChange={(e) => setHost(e.target.value)}
-              placeholder="hostname or IP address"
+              value={hostInput}
+              onChange={(e) => setHostInput(e.target.value)}
+              placeholder="username@hostname"
               required
             />
+            <p className="mt-1 text-xs text-neutral-500">
+              Format: username@hostname (e.g., admin@server.example.com)
+            </p>
           </div>
 
           <div>
@@ -61,19 +68,6 @@ export default function ConnectionDialog({ onConnect, onCancel }: ConnectionDial
               value={port}
               onChange={(e) => setPort(e.target.value)}
               placeholder="22"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-neutral-700">
-              Username
-            </label>
-            <Input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="username"
               required
             />
           </div>

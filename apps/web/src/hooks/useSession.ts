@@ -31,13 +31,20 @@ export function useSessionSocket(
 
   const close = useCallback(() => {
     if (!wsRef.current) return
-    try {
-      sendWs(wsRef.current, { type: 'close' })
-    } catch {
-      // ignore
-    }
-    wsRef.current.close()
+    const ws = wsRef.current
     wsRef.current = null
+    
+    if (ws.readyState === WebSocket.OPEN) {
+      try {
+        sendWs(ws, { type: 'close' })
+      } catch (err) {
+        console.warn('[WS] Error sending close message:', err)
+      }
+    }
+    
+    if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+      ws.close(1000, 'Client closing')
+    }
   }, [])
 
   return { connect, send, close }
