@@ -4,7 +4,7 @@ This repo contains a V1 monorepo skeleton for an SSH Gateway + Web Terminal UI.
 
 ## Prerequisites
 - Node.js 18+
-- pnpm 8+
+- npm 9+
 - Python 3.11+
 
 ## Setup
@@ -12,7 +12,7 @@ This repo contains a V1 monorepo skeleton for an SSH Gateway + Web Terminal UI.
 ### 1) Install frontend dependencies
 
 ```bash
-pnpm install
+npm install
 ```
 
 ### 2) Configure backend devices and credentials
@@ -61,7 +61,7 @@ flask --app app run --port 8000 --debug
 From repo root:
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 Open `http://localhost:5173`.
