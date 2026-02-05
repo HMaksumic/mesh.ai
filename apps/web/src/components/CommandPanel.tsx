@@ -68,13 +68,13 @@ export default function CommandPanel({
         )}
         {results.map((r) => (
           <Card
-            key={r.device_id}
+            key={r.host}
             className={`flex flex-col gap-2 p-3 ${
               r.ok ? 'border-emerald-200' : 'border-rose-200'
             }`}
           >
             <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-neutral-900">{r.device_id}</div>
+              <div className="text-sm font-semibold text-neutral-900">{r.host}</div>
               <Badge>{r.duration_ms}ms</Badge>
             </div>
             <pre className="whitespace-pre-wrap text-xs font-mono text-neutral-700">

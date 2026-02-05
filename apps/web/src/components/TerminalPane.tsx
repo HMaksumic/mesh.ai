@@ -54,10 +54,20 @@ export default function TerminalPane({
     const fit = new FitAddon()
     term.loadAddon(fit)
     terminalRef.current = term
+    let disposed = false
 
+    let fitTimeout: number | null = null
     if (containerRef.current) {
       term.open(containerRef.current)
-      fit.fit()
+      // Wait for DOM to settle before fitting
+      fitTimeout = window.setTimeout(() => {
+        if (disposed) return
+        try {
+          fit.fit()
+        } catch (e) {
+          console.warn('Failed to fit terminal:', e)
+        }
+      }, 0)
     }
 
     term.onData((data) => {
@@ -65,24 +75,37 @@ export default function TerminalPane({
     })
 
     connect()
-    send({ type: 'resize', cols: term.cols, rows: term.rows })
+    
+    // Wait for connection before sending resize
+    const resizeTimeout = setTimeout(() => {
+      send({ type: 'resize', cols: term.cols, rows: term.rows })
+    }, 100)
 
     onRegister(sessionId, send)
 
     function handleResize() {
-      fit.fit()
-      send({ type: 'resize', cols: term.cols, rows: term.rows })
+      if (disposed) return
+      try {
+        fit.fit()
+        send({ type: 'resize', cols: term.cols, rows: term.rows })
+      } catch (e) {
+        console.warn('Failed to resize terminal:', e)
+      }
     }
 
     window.addEventListener('resize', handleResize)
 
     return () => {
+      disposed = true
+      if (fitTimeout !== null) window.clearTimeout(fitTimeout)
+      clearTimeout(resizeTimeout)
       window.removeEventListener('resize', handleResize)
       onUnregister(sessionId)
       close()
       term.dispose()
+      terminalRef.current = null
     }
-  }, [connect, send, close, sessionId, onRegister, onUnregister])
+  }, [sessionId])
 
   const tone = status === 'connected' ? 'success' : status === 'error' ? 'error' : 'neutral'
 

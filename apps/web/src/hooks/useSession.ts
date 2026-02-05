@@ -10,8 +10,18 @@ export function useSessionSocket(
   const wsRef = useRef<WebSocket | null>(null)
 
   const connect = useCallback(() => {
-    if (wsRef.current) return
-    wsRef.current = openSessionSocket(wsUrl, onMessage, onStatus)
+    const existing = wsRef.current
+    if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) {
+      return
+    }
+
+    const ws = openSessionSocket(wsUrl, onMessage, onStatus)
+    const handleTerminalClose = () => {
+      if (wsRef.current === ws) wsRef.current = null
+    }
+    ws.addEventListener('close', handleTerminalClose)
+    ws.addEventListener('error', handleTerminalClose)
+    wsRef.current = ws
   }, [wsUrl, onMessage, onStatus])
 
   const send = useCallback((msg: WsClientMessage) => {

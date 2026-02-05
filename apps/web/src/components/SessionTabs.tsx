@@ -36,36 +36,39 @@ export default function SessionTabs({
 
   return (
     <Tabs>
-      {sessions.map((s) => (
-        <div
-          key={s.sessionId}
-          className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm ${
-            activeTabId === s.sessionId
-              ? 'border-neutral-300 bg-neutral-50'
-              : 'border-neutral-200 bg-white'
-          }`}
-        >
-          <button
-            className="font-medium text-neutral-900"
-            onClick={() => onActivate(s.sessionId)}
+      {sessions.map((s) => {
+        const displayName = s.displayName || `${s.connection.username}@${s.connection.host}`
+        return (
+          <div
+            key={s.sessionId}
+            className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm ${
+              activeTabId === s.sessionId
+                ? 'border-neutral-300 bg-neutral-50'
+                : 'border-neutral-200 bg-white'
+            }`}
           >
-            {s.device.name}
-          </button>
-          <Badge tone={statusTone[s.status]}>{s.status}</Badge>
-          <label className="flex items-center gap-2 text-xs text-neutral-500">
-            <input
-              type="checkbox"
-              checked={selectedSessionIds.includes(s.sessionId)}
-              onChange={() => toggleSelect(s.sessionId)}
-              className="h-4 w-4 accent-neutral-900"
+            <button
+              className="font-medium text-neutral-900"
+              onClick={() => onActivate(s.sessionId)}
+            >
+              {displayName}
+            </button>
+            <Badge tone={statusTone[s.status]}>{s.status}</Badge>
+            <label className="flex items-center gap-2 text-xs text-neutral-500">
+              <input
+                type="checkbox"
+                checked={selectedSessionIds.includes(s.sessionId)}
+                onChange={() => toggleSelect(s.sessionId)}
+                className="h-4 w-4 accent-neutral-900"
             />
             Broadcast
           </label>
           <Button variant="ghost" onClick={() => onClose(s.sessionId)} aria-label="Close tab">
-            ×
+            Ã—
           </Button>
         </div>
-      ))}
+        )
+      })}
     </Tabs>
   )
 }

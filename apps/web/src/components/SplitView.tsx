@@ -47,7 +47,7 @@ export default function SplitView({
           <TerminalPane
             key={active.sessionId}
             sessionId={active.sessionId}
-            title={active.device.name}
+            title={active.displayName || 'Session'}
             status={active.status}
             wsUrl={getWsUrl(active.sessionId)}
             onStatus={(state) => onStatus(active.sessionId, state)}
@@ -75,7 +75,7 @@ export default function SplitView({
             <option value="">Select session</option>
             {sessions.map((s) => (
               <option key={s.sessionId} value={s.sessionId}>
-                {s.device.name}
+                {s.displayName || s.sessionId}
               </option>
             ))}
           </select>
@@ -83,7 +83,7 @@ export default function SplitView({
             <TerminalPane
               key={left.sessionId}
               sessionId={left.sessionId}
-              title={left.device.name}
+              title={left.displayName || 'Session'}
               status={left.status}
               wsUrl={getWsUrl(left.sessionId)}
               onStatus={(state) => onStatus(left.sessionId, state)}
@@ -105,7 +105,7 @@ export default function SplitView({
             <option value="">Select session</option>
             {sessions.map((s) => (
               <option key={s.sessionId} value={s.sessionId}>
-                {s.device.name}
+                {s.displayName || s.sessionId}
               </option>
             ))}
           </select>
@@ -113,7 +113,7 @@ export default function SplitView({
             <TerminalPane
               key={right.sessionId}
               sessionId={right.sessionId}
-              title={right.device.name}
+              title={right.displayName || 'Session'}
               status={right.status}
               wsUrl={getWsUrl(right.sessionId)}
               onStatus={(state) => onStatus(right.sessionId, state)}

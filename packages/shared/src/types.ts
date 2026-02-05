@@ -1,17 +1,13 @@
-export interface Device {
-  id: string
-  name: string
+export interface ConnectionDetails {
   host: string
   port: number
   username: string
-  auth_method: 'key' | 'password'
-  tags: string[]
-  subnet?: string
-  site?: string
+  password?: string  // Optional: if not provided, SSH will prompt in terminal
+  private_key?: string  // Optional: if not provided, SSH will prompt in terminal
 }
 
 export interface SessionCreateRequest {
-  device_id: string
+  connection: ConnectionDetails
   cols: number
   rows: number
 }
@@ -22,13 +18,13 @@ export interface SessionCreateResponse {
 }
 
 export interface CommandRunRequest {
-  device_ids: string[]
+  connections: ConnectionDetails[]
   command: string
   timeout_sec?: number
 }
 
 export interface CommandResult {
-  device_id: string
+  host: string
   ok: boolean
   stdout: string
   stderr?: string

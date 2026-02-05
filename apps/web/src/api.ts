@@ -1,9 +1,9 @@
 import type {
   CommandRunRequest,
   CommandRunResponse,
-  Device,
   SessionCreateRequest,
-  SessionCreateResponse
+  SessionCreateResponse,
+  ConnectionDetails
 } from '@mesh/shared'
 
 async function fetchJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
@@ -18,18 +18,14 @@ async function fetchJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> 
   return res.json() as Promise<T>
 }
 
-export async function listDevices(filters: Record<string, string | undefined>): Promise<Device[]> {
-  const params = new URLSearchParams()
-  Object.entries(filters).forEach(([k, v]) => {
-    if (v) params.set(k, v)
-  })
-  return fetchJson<Device[]>(`/api/devices?${params.toString()}`)
-}
-
-export async function createSession(body: SessionCreateRequest): Promise<SessionCreateResponse> {
+export async function createSession(
+  connection: ConnectionDetails,
+  cols: number,
+  rows: number
+): Promise<SessionCreateResponse> {
   return fetchJson<SessionCreateResponse>('/api/sessions', {
     method: 'POST',
-    body: JSON.stringify(body)
+    body: JSON.stringify({ connection, cols, rows })
   })
 }
 

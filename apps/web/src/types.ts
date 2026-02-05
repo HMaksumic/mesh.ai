@@ -1,8 +1,9 @@
-import type { Device, WsClientMessage, WsServerMessage } from '@mesh/shared'
+import type { WsClientMessage, WsServerMessage, ConnectionDetails } from '@mesh/shared'
 
 export type SessionState = {
   sessionId: string
-  device: Device
+  connection: ConnectionDetails
+  displayName?: string
   status: 'connected' | 'disconnected' | 'error'
   ws?: WebSocket
 }
@@ -30,5 +31,12 @@ export function openSessionSocket(
 }
 
 export function sendWs(ws: WebSocket, msg: WsClientMessage): void {
-  ws.send(JSON.stringify(msg))
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(msg))
+  } else if (ws.readyState === WebSocket.CONNECTING) {
+    // Queue the message to send once connected
+    ws.addEventListener('open', () => {
+      ws.send(JSON.stringify(msg))
+    }, { once: true })
+  }
 }

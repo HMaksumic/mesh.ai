@@ -9,9 +9,18 @@ from typing import Dict
 
 
 @dataclass
+class ConnectionDetails:
+  host: str
+  port: int
+  username: str
+  password: str | None = None
+  private_key: str | None = None
+
+
+@dataclass
 class Session:
   session_id: str
-  device_id: str
+  connection: ConnectionDetails
   cols: int
   rows: int
   created_at: float
@@ -42,10 +51,10 @@ class SessionManager:
     t = threading.Thread(target=sweep, daemon=True)
     t.start()
 
-  def create_session(self, device_id: str, cols: int, rows: int) -> Session:
+  def create_session(self, connection: ConnectionDetails, cols: int, rows: int) -> Session:
     session_id = str(uuid.uuid4())
     now = time.time()
-    session = Session(session_id, device_id, cols, rows, now, now)
+    session = Session(session_id, connection, cols, rows, now, now)
     with self._lock:
       self._sessions[session_id] = session
     return session

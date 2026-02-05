@@ -5,12 +5,12 @@ import time
 import asyncssh
 from typing import Optional
 
-from .inventory import Device
+from .session_manager import ConnectionDetails
 
 
-async def start_interactive_session(session, device: Device, ssh_private_key_path: str | None, ssh_password: str | None, on_status) -> None:
+async def start_interactive_session(session, on_status) -> None:
   try:
-    conn = await _connect(device, ssh_private_key_path, ssh_password)
+    conn = await _connect(session.connection)
     process = await conn.create_process(
       term_type='xterm',
       term_size=(session.cols, session.rows)
@@ -46,14 +46,15 @@ async def start_interactive_session(session, device: Device, ssh_private_key_pat
     on_status('error')
 
 
-async def run_command(device: Device, command: str, timeout: Optional[int], ssh_private_key_path: str | None, ssh_password: str | None) -> dict:
+async def run_command(connection: ConnectionDetails, command: str, timeout: Optional[int]) -> dict:
   start = time.time()
+  host_identifier = f"{connection.username}@{connection.host}"
   try:
-    conn = await _connect(device, ssh_private_key_path, ssh_password)
+    conn = await _connect(connection)
     result = await conn.run(command, timeout=timeout)
     ok = result.exit_status == 0
     return {
-      'device_id': device.id,
+      'host': host_identifier,
       'ok': ok,
       'stdout': result.stdout or '',
       'stderr': result.stderr or '',
@@ -61,7 +62,7 @@ async def run_command(device: Device, command: str, timeout: Optional[int], ssh_
     }
   except Exception as exc:
     return {
-      'device_id': device.id,
+      'host': host_identifier,
       'ok': False,
       'stdout': '',
       'stderr': str(exc),
@@ -69,23 +70,29 @@ async def run_command(device: Device, command: str, timeout: Optional[int], ssh_
     }
 
 
-async def _connect(device: Device, ssh_private_key_path: str | None, ssh_password: str | None):
-  if device.auth_method == 'key':
-    if not ssh_private_key_path:
-      raise ValueError('SSH_PRIVATE_KEY_PATH is not set')
+async def _connect(connection: ConnectionDetails):
+  # If private key is provided, use it
+  if connection.private_key:
     return await asyncssh.connect(
-      device.host,
-      port=device.port,
-      username=device.username,
-      client_keys=[ssh_private_key_path]
+      connection.host,
+      port=connection.port,
+      username=connection.username,
+      client_keys=[connection.private_key]
     )
-  if device.auth_method == 'password':
-    if not ssh_password:
-      raise ValueError('SSH_PASSWORD is not set')
+  # If password is provided, use it
+  elif connection.password:
     return await asyncssh.connect(
-      device.host,
-      port=device.port,
-      username=device.username,
-      password=ssh_password
+      connection.host,
+      port=connection.port,
+      username=connection.username,
+      password=connection.password
     )
-  raise ValueError(f'Unknown auth_method: {device.auth_method}')
+  # Otherwise, use interactive authentication (prompts shown in terminal)
+  else:
+    return await asyncssh.connect(
+      connection.host,
+      port=connection.port,
+      username=connection.username,
+      password=None,  # Will trigger keyboard-interactive
+      client_keys=[]  # Don't try default keys
+    )

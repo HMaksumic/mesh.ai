@@ -2,6 +2,7 @@ from flask import current_app
 from flask_sock import Sock
 import json
 import threading
+from simple_websocket.errors import ConnectionClosed
 
 from ..services.session_manager import SessionManager
 
@@ -29,7 +30,12 @@ def init_ws(app):
         data = session.out_q.get()
         if data is None:
           break
-        ws.send(json.dumps({ 'type': 'output', 'data': data }))
+        try:
+          ws.send(json.dumps({ 'type': 'output', 'data': data }))
+        except ConnectionClosed:
+          break
+        except Exception:
+          break
 
     t = threading.Thread(target=sender, daemon=True)
     t.start()
@@ -53,10 +59,16 @@ def init_ws(app):
         elif msg.get('type') == 'close':
           break
     except Exception as exc:
-      ws.send(json.dumps({ 'type': 'status', 'state': 'error', 'message': str(exc) }))
+      try:
+        ws.send(json.dumps({ 'type': 'status', 'state': 'error', 'message': str(exc) }))
+      except Exception:
+        pass
     finally:
       audit.log_event('session_close', session_id=session_id)
       sessions.close_session(session_id, 'client_close')
       session.in_q.put(None)
       session.resize_q.put((None, None))
-      ws.send(json.dumps({ 'type': 'status', 'state': 'disconnected' }))
+      try:
+        ws.send(json.dumps({ 'type': 'status', 'state': 'disconnected' }))
+      except Exception:
+        pass
